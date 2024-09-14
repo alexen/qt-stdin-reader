@@ -51,7 +51,7 @@
      <string>Read from input:</string>
     </property>
    </widget>
-   <widget class="QPlainTextEdit" name="plainTextEdit">
+   <widget class="QPlainTextEdit" name="textFromInput">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -77,7 +77,7 @@
      <string>Write to output:</string>
     </property>
    </widget>
-   <widget class="QPlainTextEdit" name="plainTextEdit_2">
+   <widget class="QPlainTextEdit" name="textForOutput">
     <property name="enabled">
      <bool>false</bool>
     </property>
