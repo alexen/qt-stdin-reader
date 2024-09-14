@@ -7,9 +7,13 @@ class StdinReader : public QObject {
 
 public:
      StdinReader();
+     ~StdinReader();
+
+public slots:
+     void start();
+     void stop();
 
 signals:
-     void dataReceived( const QByteArray& );
-     void stdinClosed();
+     void dataReceived( const QString& );
+     void finished();
 };
-
