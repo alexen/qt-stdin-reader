@@ -1,7 +1,7 @@
 #pragma once
 
-
 #include <QMainWindow>
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Application; }
@@ -15,6 +15,11 @@ public:
      Application(QWidget *parent = nullptr);
      ~Application();
 
+     void run();
+
+signals:
+     void finish();
+
 private:
-     Ui::Application *ui;
+     Ui::Application *ui_;
 };

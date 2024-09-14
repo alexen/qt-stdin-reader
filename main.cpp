@@ -5,8 +5,7 @@
 int main(int argc, char *argv[])
 {
      QApplication a(argc, argv);
-     Application w;
-     w.show();
-     w.run();
+     Application application;
+     application.run();
      return a.exec();
 }
