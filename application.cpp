@@ -1,20 +1,22 @@
 #include "application.h"
-#include "./ui_application.h"
 
-#include <memory>
+#include <cstdio>
+#include <cstring>
+#include <iostream>
 
 #include <QDebug>
-#include <QThread>
+#include <QSocketNotifier>
 
-#include "stdin_reader.h"
+#include "ui_application.h"
 
 
-Application::Application(QWidget *parent)
-     : QMainWindow(parent)
-     , ui_(new Ui::Application)
+Application::Application( QWidget *parent )
+     : QMainWindow{ parent }
+     , ui_{ new Ui::Application }
+     , notifier_{ new QSocketNotifier{ fileno( stdin ), QSocketNotifier::Read, this } }
 {
      qInfo() << "Application created, set up UI class";
-     ui_->setupUi(this);
+     ui_->setupUi( this );
 
      show();
 }
@@ -22,6 +24,7 @@ Application::Application(QWidget *parent)
 
 Application::~Application()
 {
+     delete notifier_;
      delete ui_;
      qInfo() << "Application destroyed, UI deleted";
 }
@@ -30,27 +33,53 @@ Application::~Application()
 void Application::run()
 {
      qInfo() << "Starting working thread";
-
-     StdinReader* stdinReader = new StdinReader;
-     QThreadDebug* thread = new QThreadDebug;
-
-     stdinReader->moveToThread( thread );
-
-     /// Вызов необходим для старта потокового воркера
-     connect( thread, SIGNAL(started()), stdinReader, SLOT(start()) );
-     /// Вызов необходим для корректного выключения? потока
-     connect( stdinReader, SIGNAL(finished()), thread, SLOT(quit()) );
-     /// Необходим для корректного удаления объекта класса StdinReader
-     connect( stdinReader, SIGNAL(finished()), stdinReader, SLOT(deleteLater()) );
-     /// Необходим для корректного удаления объекта класса QThread
-     connect( thread, SIGNAL(finished()), thread, SLOT(deleteLater()) );
-
      connect(
-          stdinReader
+          notifier_
+          , SIGNAL(activated(int))
+          , this
+          , SLOT(readData())
+          );
+     connect(
+          this
           , SIGNAL(dataReceived(const QString&))
           , ui_->textFromInput
           , SLOT(appendPlainText(const QString&))
           );
+     connect(
+          this
+          , SIGNAL(inputStreamClosed())
+          , this
+          , SLOT(close())
+          );
+     connect(
+          this
+          , SIGNAL(inputStreamError(const QString&))
+          , ui_->textForOutput
+          , SLOT(setPlainText(const QString&))
+          );
+}
 
-     thread->start();
+
+void Application::readData()
+{
+     qInfo() << "Reading data";
+     char buffer[ 1024 ] = {};
+     const auto ret = fread( buffer, 1, sizeof( buffer ), stdin );
+     qInfo() << "Reading data: ret: " << ret;
+     if( ret > 0 )
+     {
+          const std::string data{ buffer, ret };
+          qInfo() << "Emit [dataReceived]: " << QString::fromStdString( data );
+          emit dataReceived( QString::fromStdString( data ) );
+     }
+     else if( feof( stdin ) )
+     {
+          qInfo() << "Emit [inputStreamClosed]";
+          emit inputStreamClosed();
+     }
+     else
+     {
+          qInfo() << "Emit [inputStreamError]";
+          emit inputStreamError( QString{ strerror( errno ) } );
+     }
 }
