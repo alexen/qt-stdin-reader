@@ -15,13 +15,13 @@ Application::Application(QWidget *parent)
 {
      qInfo() << "Application created, set up UI class";
      ui_->setupUi(this);
+
      show();
 }
 
 
 Application::~Application()
 {
-     emit finish();
      delete ui_;
      qInfo() << "Application destroyed, UI deleted";
 }
@@ -32,17 +32,25 @@ void Application::run()
      qInfo() << "Starting working thread";
 
      StdinReader* stdinReader = new StdinReader;
-     QThread* thread = new QThread;
+     QThreadDebug* thread = new QThreadDebug;
 
      stdinReader->moveToThread( thread );
 
+     /// Вызов необходим для старта потокового воркера
      connect( thread, SIGNAL(started()), stdinReader, SLOT(start()) );
-     connect( stdinReader, SIGNAL(finished()), thread, SLOT(quit()));
-     connect( this, SIGNAL(finish()), stdinReader, SLOT(stop()) );
+     /// Вызов необходим для корректного выключения? потока
+     connect( stdinReader, SIGNAL(finished()), thread, SLOT(quit()) );
+     /// Необходим для корректного удаления объекта класса StdinReader
      connect( stdinReader, SIGNAL(finished()), stdinReader, SLOT(deleteLater()) );
-     connect( thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+     /// Необходим для корректного удаления объекта класса QThread
+     connect( thread, SIGNAL(finished()), thread, SLOT(deleteLater()) );
 
-     connect( stdinReader, SIGNAL(dataReceived(const QString&)), ui_->textFromInput, SLOT(appendPlainText(const QString&)) );
+     connect(
+          stdinReader
+          , SIGNAL(dataReceived(const QString&))
+          , ui_->textFromInput
+          , SLOT(appendPlainText(const QString&))
+          );
 
      thread->start();
 }

@@ -31,9 +31,6 @@ public:
 
      void run();
 
-signals:
-     void finish();
-
 private:
      Ui::Application *ui_;
 };
