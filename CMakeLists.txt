@@ -19,8 +19,6 @@ set(PROJECT_SOURCES
         application.cpp
         application.h
         application.ui
-        stdin_reader.h
-        stdin_reader.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
