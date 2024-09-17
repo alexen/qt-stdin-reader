@@ -30,10 +30,3 @@ void StdinReader::start()
      }
      emit finished();
 }
-
-
-void StdinReader::stop()
-{
-     qInfo() << "StdinReader stop working";
-     emit finished();
-}
